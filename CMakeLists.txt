@@ -9,7 +9,25 @@ target_sources(mandelbrot-cpp
 		"src/Main.cpp"
 )
 
+# GLFW
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+add_subdirectory("dependencies/GLFW")
+set(GLFW_LIBRARY "glfw")
+set_property(TARGET glfw PROPERTY FOLDER "dependencies/GLFW")
+if (TARGET update_mappings)
+	set_property(TARGET update_mappings PROPERTY FOLDER "dependencies/GLFW")
+endif()
+
 target_include_directories(mandelbrot-cpp
 	PRIVATE
 		"src/"
+		"dependencies/GLFW/include/"
+)
+
+target_link_libraries(mandelbrot-cpp
+	PRIVATE
+		"${GLFW_LIBRARY}"
 )
