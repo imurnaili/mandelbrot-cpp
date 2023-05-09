@@ -8,6 +8,7 @@ target_sources(mandelbrot-cpp
 	PRIVATE
 		"src/Main.cpp"
 		"src/Shader.cpp"
+		"src/Build.cpp"
 		"dependencies/glad/src/glad.c"
 )
 
