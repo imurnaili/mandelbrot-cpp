@@ -7,6 +7,8 @@ add_executable(mandelbrot-cpp)
 target_sources(mandelbrot-cpp
 	PRIVATE
 		"src/Main.cpp"
+
+		"dependencies/glad/src/glad.c"
 )
 
 # GLFW
@@ -25,6 +27,7 @@ target_include_directories(mandelbrot-cpp
 	PRIVATE
 		"src/"
 		"dependencies/GLFW/include/"
+		"dependencies/glad/include/"
 )
 
 target_link_libraries(mandelbrot-cpp
