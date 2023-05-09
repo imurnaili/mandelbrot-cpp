@@ -7,7 +7,7 @@ add_executable(mandelbrot-cpp)
 target_sources(mandelbrot-cpp
 	PRIVATE
 		"src/Main.cpp"
-
+		"src/Shader.cpp"
 		"dependencies/glad/src/glad.c"
 )
 
