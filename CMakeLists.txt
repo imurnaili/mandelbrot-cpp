@@ -11,6 +11,10 @@ target_sources(mandelbrot-cpp
 		"dependencies/glad/src/glad.c"
 )
 
+# glm
+add_subdirectory("dependencies/glm")
+set_property(TARGET glm PROPERTY FOLDER "dependencies/glm")
+
 # GLFW
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -28,9 +32,11 @@ target_include_directories(mandelbrot-cpp
 		"src/"
 		"dependencies/GLFW/include/"
 		"dependencies/glad/include/"
+		"dependencies/glm/"
 )
 
 target_link_libraries(mandelbrot-cpp
 	PRIVATE
 		"${GLFW_LIBRARY}"
+		"glm"
 )
