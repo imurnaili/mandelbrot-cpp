@@ -33,6 +33,7 @@ target_include_directories(mandelbrot-cpp
 		"dependencies/GLFW/include/"
 		"dependencies/glad/include/"
 		"dependencies/glm/"
+		"dependencies/stb/"
 )
 
 target_link_libraries(mandelbrot-cpp
