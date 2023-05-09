@@ -23,49 +23,60 @@ int main(int argc, char** argv) {
             "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
             "}\0");
 
+	// texture coordinates
+	float texCoords[] = {
+		-1.0f, -1.0f, // bottom left
+		1.0f, -1.0f, // bottom right
+		1.0f,  1.0f, // top right
+		-1.0f,  1.0f,  // top left
+		1.0f,  1.0f, // top right
+		-1.0f, -1.0f  // bottom left
+	};
+	// create texture from coordinates
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	// set texture wrapping/filtering options
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // x-axis
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // y-axis
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // minification
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // magnification
+
+	// cover screen with two triangles
+	float vertices[] = {
+		// first triangle
+		-1.0f, -1.0f, 0.0f, // bottom left
+			1.0f, -1.0f, 0.0f, // bottom right
+			1.0f,  1.0f, 0.0f, // top right
+		// second triangle
+		-1.0f,  1.0f, 0.0f, // top left
+			1.0f,  1.0f, 0.0f, // top right
+			-1.0f, -1.0f, 0.0f  // bottom left
+	};
+
+	unsigned int VBO;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+	// copy vertices into buffer
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	// create vertex array object
+	unsigned int VAO;
+	glGenVertexArrays(1, &VAO);
+
 	while (!glfwWindowShouldClose(window)) {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		shader.bind();
-		// texture coordinates
-		float texCoords[] = {
-			-1.0f, -1.0f, // bottom left
-			1.0f, -1.0f, // bottom right
-			1.0f,  1.0f, // top right
-			-1.0f,  1.0f,  // top left
-			1.0f,  1.0f, // top right
-			-1.0f, -1.0f  // bottom left
-		};
-		// create texture from coordinates
-		unsigned int texture;
-		glGenTextures(1, &texture);
+		
+		// bind texture
 		glBindTexture(GL_TEXTURE_2D, texture);
-		// set texture wrapping/filtering options
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // x-axis
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // y-axis
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // minification
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // magnification
+		// set texture uniform
+		shader.setInt("mandelbrotTexture", 0);
+		// set texture coordinates
+		glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_STATIC_DRAW);
 
-		// cover screen with two triangles
-		float vertices[] = {
-			// first triangle
-			-1.0f, -1.0f, 0.0f, // bottom left
-			 1.0f, -1.0f, 0.0f, // bottom right
-			 1.0f,  1.0f, 0.0f, // top right
-			// second triangle
-			-1.0f,  1.0f, 0.0f, // top left
-			 1.0f,  1.0f, 0.0f, // top right
-			 -1.0f, -1.0f, 0.0f  // bottom left
-		};
-		unsigned int VBO;
-		glGenBuffers(1, &VBO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		// copy vertices into buffer
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		// create vertex array object
-		unsigned int VAO;
-		glGenVertexArrays(1, &VAO);
 		glBindVertexArray(VAO);
 		// tell OpenGL how to interpret vertex data
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
