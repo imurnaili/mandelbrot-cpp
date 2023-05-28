@@ -1,5 +1,6 @@
-mkdir build
-cd build
+@ECHO OFF
+MKDIR build
+CD build
 cmake ..
 cmake --build .
-cd ..
+CD ..
