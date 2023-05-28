@@ -1,3 +1,3 @@
 @ECHO OFF
-START .\build.bat
-START .\build\Debug\mandelbrot-cpp.exe
+CALL .\build.bat
+CALL .\build\Debug\mandelbrot-cpp.exe
