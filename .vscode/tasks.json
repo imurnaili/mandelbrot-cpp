@@ -3,11 +3,12 @@
   "tasks": [
     {
       "label": "Build",
-      "command": "./build.bat",
+      "command": "./build.bat"
     },
     {
-        "label": "BuildAndRun",
-        "command": "./buildAndRun.bat",
-      }
+      "label": "BuildAndRun",
+      "command": "./buildAndRun.bat",
+      "problemMatcher": []
+    }
   ]
 }
