@@ -1,0 +1,13 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build",
+      "command": "./build.bat",
+    },
+    {
+        "label": "BuildAndRun",
+        "command": "./buildAndRun.bat",
+      }
+  ]
+}
