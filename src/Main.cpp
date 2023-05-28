@@ -16,8 +16,11 @@ void logGlError(int id) {
 }
 
 struct WindowData {
-	int width, height;
-	int zoomValue;
+	glm::ivec2 windowSize;
+	glm::fvec2 center;
+	glm::fvec2 prevMousePos;
+	glm::fvec2 topLeftCorner;
+	glm::fvec2 bottomRightCorner;
 };
 
 std::string readFileContents(const std::string& path) {
@@ -41,29 +44,43 @@ int main(int argc, char** argv) {
 	Shader shader(vertexShaderCode.c_str(), fragmentShaderCode.c_str());
 
 	WindowData windowData{ };
-	glfwGetFramebufferSize(window, &windowData.width, &windowData.height);
-	windowData.zoomValue = 0;
+	glfwGetFramebufferSize(window, &windowData.windowSize.x, &windowData.windowSize.y);
+	windowData.center = glm::fvec2();
+	windowData.prevMousePos = glm::fvec2();
+	windowData.topLeftCorner = glm::fvec2(-2.0f, 1.0f);
+	windowData.bottomRightCorner = glm::fvec2(2.0f, -1.0f);
 
 	glfwSetWindowUserPointer(window, &windowData);
 	GLint location_windowSize = shader.getUniformLocation("windowSize");
+	GLint location_topLeftCorner = shader.getUniformLocation("renderTopLeftCorner");
+	GLint location_bottomRightCorner = shader.getUniformLocation("renderBottomRightCorner");
 	shader.bind();
 
 	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
 		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
-		data->width = static_cast<float>(width);
-		data->height = static_cast<float>(height);
+		data->windowSize.x = static_cast<float>(width);
+		data->windowSize.y = static_cast<float>(height);
 		glViewport(0, 0, width, height);
 	});
 
-	glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
+	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
 		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
+			glm::fvec2 mousePos(static_cast<float>(xpos) / data->windowSize.x, static_cast<float>(ypos) / data->windowSize.y);
+		}
+		data->prevMousePos.x = static_cast<float>(xpos);
+		data->prevMousePos.y = static_cast<float>(ypos);
 	});
 
-	glfwSetScrollCallback(window, [](GLFWwindow* window, double, double yoffset) {
-		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
-		data->zoomValue += yoffset;
-		if (data->zoomValue < 0) data->zoomValue = 0;
-	});
+	// glfwSetScrollCallback(window, [](GLFWwindow* window, double, double yoffset) {
+	// 	WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
+	// 	data->zoomValue += yoffset;
+	// 	if (data->zoomValue < 0) data->zoomValue = 0;
+	// 	double xpos, ypos;
+	// 	glfwGetCursorPos(window, &xpos, &ypos);
+	// 	glm::fvec2 mousePos(static_cast<float>(xpos) / data->windowSize.x, static_cast<float>(ypos) / data->windowSize.y);
+	// 	data->center = glm::mix(mousePos, data->center, 0.1f);
+	// });
 
 	// cover screen with two triangles
 	float vertices[] = {
@@ -92,7 +109,9 @@ int main(int argc, char** argv) {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		shader.bind();
-		shader.setVec2(location_windowSize, static_cast<float>(windowData.width), static_cast<float>(windowData.height));
+		shader.setVec2(location_windowSize, static_cast<float>(windowData.windowSize.x), static_cast<float>(windowData.windowSize.y));
+		shader.setVec2(location_topLeftCorner, windowData.topLeftCorner.x, windowData.topLeftCorner.y);
+		shader.setVec2(location_bottomRightCorner, windowData.bottomRightCorner.x, windowData.bottomRightCorner.y);
 
 		glBindVertexArray(VAO);
 		// tell OpenGL how to interpret vertex data
