@@ -1,14 +1,22 @@
 {
   "version": "2.0.0",
   "tasks": [
-    {
-      "label": "Build",
-      "command": "./build.bat"
-    },
-    {
-      "label": "BuildAndRun",
-      "command": "./buildAndRun.bat",
-      "problemMatcher": []
-    }
-  ]
+	{
+		"label": "Build",
+		"command": "./build.bat",
+		"problemMatcher": [],
+		"group": {
+			"kind": "build",
+			"isDefault": false
+		}
+	},
+	{
+		"label": "BuildAndRun",
+		"command": "./buildAndRun.bat",
+		"group": {
+			"kind": "build",
+			"isDefault": true
+		}
+	}
+]
 }
