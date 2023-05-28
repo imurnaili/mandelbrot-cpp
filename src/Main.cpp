@@ -9,6 +9,12 @@
 #include "Shader.hpp"
 
 bool changed = true;
+//TODO: 
+// - add zooming by fathering the mouse position to the center of the screen and scaling the render area by the scroll offset (use glfwSetScrollCallback) 
+// - add panning by fathering the mouse position to the center of the screen and translating the render area by the mouse position delta (use glfwSetCursorPosCallback)
+// - add color palette (use glfwSetKeyCallback)
+// - add color modes (use glfwSetKeyCallback)
+// - add julia set 
 
 void logGlError(int id) {
 	GLenum err;
