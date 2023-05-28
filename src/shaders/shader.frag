@@ -8,7 +8,7 @@
 #define squareLength(a) abs(a.x*a.x+a.y*a.y)
 
 #define centerColor vec4(0.0f, 0.0f, 0.0f, 1.0f)
-#define iterations 100
+#define iterations 100000
 
 //https://gist.github.com/983/e170a24ae8eba2cd174f
 vec3 rgb2hsv(vec3 c)
@@ -38,7 +38,7 @@ out vec4 FragColor;
 
 void main() {
 	vec2 screenPos = gl_FragCoord.xy / fragWindowSize;
-	vec2 c = topLeftCorner + (bottomRightCorner - topLeftCorner) * screenPos;
+	vec2 c = mix(topLeftCorner, bottomRightCorner, screenPos);
 
 	vec2 z = vec2(0.0f, 0.0f);
 	int j = iterations;
