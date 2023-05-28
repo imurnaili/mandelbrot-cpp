@@ -17,6 +17,7 @@ void logGlError(int id) {
 
 struct WindowData {
 	int width, height;
+	int zoomValue;
 };
 
 std::string readFileContents(const std::string& path) {
@@ -39,10 +40,11 @@ int main(int argc, char** argv) {
 	std::string fragmentShaderCode = readFileContents("shaders/shader.frag");
 	Shader shader(vertexShaderCode.c_str(), fragmentShaderCode.c_str());
 
-	WindowData windowData;
-	glfwSetWindowUserPointer(window, &windowData);
-
+	WindowData windowData{ };
 	glfwGetFramebufferSize(window, &windowData.width, &windowData.height);
+	windowData.zoomValue = 0;
+
+	glfwSetWindowUserPointer(window, &windowData);
 	GLint location_windowSize = shader.getUniformLocation("windowSize");
 	shader.bind();
 
@@ -51,6 +53,16 @@ int main(int argc, char** argv) {
 		data->width = static_cast<float>(width);
 		data->height = static_cast<float>(height);
 		glViewport(0, 0, width, height);
+	});
+
+	glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
+		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
+	});
+
+	glfwSetScrollCallback(window, [](GLFWwindow* window, double, double yoffset) {
+		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
+		data->zoomValue += yoffset;
+		if (data->zoomValue < 0) data->zoomValue = 0;
 	});
 
 	// cover screen with two triangles
