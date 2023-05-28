@@ -32,6 +32,8 @@ vec3 hsv2rgb(vec3 c)
 vec4 getColor(int i);
 
 in vec2 fragWindowSize;
+in vec2 topLeftCorner;
+in vec2 bottomRightCorner;
 out vec4 FragColor;
 
 void main() {
