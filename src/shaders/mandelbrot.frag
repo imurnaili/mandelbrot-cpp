@@ -8,7 +8,7 @@
 #define squareLength(a) abs(a.x*a.x+a.y*a.y)
 
 #define centerColor vec4(0.0f, 0.0f, 0.0f, 1.0f)
-#define iterations 1000000000
+#define iterations 1000
 
 //https://gist.github.com/983/e170a24ae8eba2cd174f
 vec3 rgb2hsv(vec3 c)

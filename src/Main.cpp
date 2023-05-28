@@ -41,8 +41,8 @@ int main(int argc, char** argv) {
 	glfwMakeContextCurrent(window);
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
-	std::string vertexShaderCode = readFileContents("shaders/shader.vert");
-	std::string fragmentShaderCode = readFileContents("shaders/shader.frag");
+	std::string vertexShaderCode = readFileContents("shaders/mandelbrot.vert");
+	std::string fragmentShaderCode = readFileContents("shaders/mandelbrot.frag");
 	Shader shader(vertexShaderCode.c_str(), fragmentShaderCode.c_str());
 
 	WindowData windowData{ };
@@ -78,7 +78,6 @@ int main(int argc, char** argv) {
 	});
 
 	glfwSetScrollCallback(window, [](GLFWwindow* window, double, double yoffset) {
-		std::cout << "Scroll factor: " << yoffset << std::endl;
 		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
 		glm::fvec2 scaleFactor(-0.1f, 0.1f);
 		data->topLeftCorner -= scaleFactor * glm::fvec1(static_cast<float>(yoffset));
