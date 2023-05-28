@@ -1,5 +1,7 @@
 #include <iostream>
 #include <iomanip>
+#include <fstream>
+#include <sstream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -17,27 +19,25 @@ struct WindowData {
 	int width, height;
 };
 
+std::string readFileContents(const std::string& path) {
+	std::ifstream fs;
+	std::stringstream ss;
+
+	fs.open(path, std::ios::in);
+	ss << fs.rdbuf();
+	fs.close();
+	return ss.str();
+}
+
 int main(int argc, char** argv) {
 	glfwInit();
 	GLFWwindow* window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
-	Shader shader(
-		"#version 450\n"
-            "layout(location = 0) in vec3 aPos;\n"
-			"uniform vec2 windowSize;\n"
-			"out vec2 fragWindowSize;\n"
-            "void main() {\n"
-            "    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-			"    fragWindowSize = windowSize;\n"
-            "}\0",
-		"#version 450\n"
-            "out vec4 FragColor;\n"
-			"in vec2 fragWindowSize;\n"
-            "void main() {\n"
-            "    FragColor = vec4(gl_FragCoord.x / fragWindowSize.x, gl_FragCoord.y / fragWindowSize.y, 0.0f, 1.0f);\n"
-            "}\0");
+	std::string vertexShaderCode = readFileContents("shaders/shader.vert");
+	std::string fragmentShaderCode = readFileContents("shaders/shader.frag");
+	Shader shader(vertexShaderCode.c_str(), fragmentShaderCode.c_str());
 
 	WindowData windowData;
 	glfwSetWindowUserPointer(window, &windowData);

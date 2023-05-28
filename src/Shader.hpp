@@ -4,14 +4,14 @@
 
 class Shader {
 public:
-    Shader(const char* vertexShaderSource, const char* fragmentShaderSource);
-    void bind();
-    void setVec2(GLint location, float x, float y);
+	Shader(const char* vertexShaderSource, const char* fragmentShaderSource);
+	void bind();
+	void setVec2(GLint location, float x, float y);
 	GLint getUniformLocation(const std::string& name);
-    //destructors
-    ~Shader();
-    //copy
-    Shader(const Shader& other);
+	//destructors
+	~Shader();
+	//copy
+	Shader(const Shader& other);
 private:
-    unsigned int ID;
+	unsigned int ID;
 };

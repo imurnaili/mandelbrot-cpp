@@ -4,11 +4,32 @@ project(mandelbrot)
 
 add_executable(mandelbrot-cpp)
 
+set_target_properties(mandelbrot-cpp
+	PROPERTIES
+		CXX_STANDARD_REQUIRED ON
+		CXX_STANDARD 17
+		RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PROJECT_BINARY_DIR}/Debug"
+		RUNTIME_OUTPUT_DIRECTORY_RELEASE "${PROJECT_BINARY_DIR}/Release"
+		FOLDER "mandelbrot"
+)
+
 target_sources(mandelbrot-cpp
 	PRIVATE
 		"src/Main.cpp"
 		"src/Shader.cpp"
 		"dependencies/glad/src/glad.c"
+)
+
+add_custom_command(TARGET mandelbrot-cpp PRE_BUILD
+	COMMAND ${CMAKE_COMMAND} -E make_directory
+		"${PROJECT_BINARY_DIR}/$<CONFIG>/shaders"
+)
+
+add_custom_command(TARGET mandelbrot-cpp POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/shader.vert"
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/shader.frag"
+		"${PROJECT_BINARY_DIR}/$<CONFIG>/shaders"
 )
 
 # glm
