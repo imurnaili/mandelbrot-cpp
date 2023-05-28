@@ -1,9 +1,21 @@
 #include <iostream>
+#include <iomanip>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <string>
 #include "Shader.hpp"
+
+void logGlError(int id) {
+	GLenum err;
+	while((err = glGetError()) != GL_NO_ERROR) {
+		std::cout << id << " - GL Error: 0x" << std::setfill('0') << std::setw(4) << std::hex << err << std::endl;
+	}
+}
+
+struct WindowData {
+	int width, height;
+};
 
 int main(int argc, char** argv) {
 	glfwInit();
@@ -12,46 +24,45 @@ int main(int argc, char** argv) {
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
 	Shader shader(
-		"#version 330 core\n"
-            "layout (location = 0) in vec3 aPos;\n"
+		"#version 450\n"
+            "layout(location = 0) in vec3 aPos;\n"
+			"uniform vec2 windowSize;\n"
+			"out vec2 fragWindowSize;\n"
             "void main() {\n"
             "    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+			"    fragWindowSize = windowSize;\n"
             "}\0",
-		"#version 330 core\n"
+		"#version 450\n"
             "out vec4 FragColor;\n"
+			"in vec2 fragWindowSize;\n"
             "void main() {\n"
-            "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+            "    FragColor = vec4(gl_FragCoord.x / fragWindowSize.x, gl_FragCoord.y / fragWindowSize.y, 0.0f, 1.0f);\n"
             "}\0");
 
-	// texture coordinates
-	float texCoords[] = {
-		-1.0f, -1.0f, // bottom left
-		1.0f, -1.0f, // bottom right
-		1.0f,  1.0f, // top right
-		-1.0f,  1.0f,  // top left
-		1.0f,  1.0f, // top right
-		-1.0f, -1.0f  // bottom left
-	};
-	// create texture from coordinates
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	// set texture wrapping/filtering options
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // x-axis
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // y-axis
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // minification
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // magnification
+	WindowData windowData;
+	glfwSetWindowUserPointer(window, &windowData);
+
+	glfwGetFramebufferSize(window, &windowData.width, &windowData.height);
+	GLint location_windowSize = shader.getUniformLocation("windowSize");
+	shader.bind();
+
+	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
+		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
+		data->width = static_cast<float>(width);
+		data->height = static_cast<float>(height);
+		glViewport(0, 0, width, height);
+	});
 
 	// cover screen with two triangles
 	float vertices[] = {
 		// first triangle
-		-1.0f, -1.0f, 0.0f, // bottom left
-			1.0f, -1.0f, 0.0f, // bottom right
-			1.0f,  1.0f, 0.0f, // top right
+		-1.0f, -1.0f,  0.0f, // bottom left
+		 1.0f, -1.0f,  0.0f, // bottom right
+		 1.0f,  1.0f,  0.0f, // top right
 		// second triangle
-		-1.0f,  1.0f, 0.0f, // top left
-			1.0f,  1.0f, 0.0f, // top right
-			-1.0f, -1.0f, 0.0f  // bottom left
+		-1.0f,  1.0f,  0.0f, // top left
+		 1.0f,  1.0f,  0.0f, // top right
+		-1.0f, -1.0f,  0.0f  // bottom left
 	};
 
 	unsigned int VBO;
@@ -69,13 +80,7 @@ int main(int argc, char** argv) {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		shader.bind();
-		
-		// bind texture
-		glBindTexture(GL_TEXTURE_2D, texture);
-		// set texture uniform
-		shader.setInt("mandelbrotTexture", 0);
-		// set texture coordinates
-		glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_STATIC_DRAW);
+		shader.setVec2(location_windowSize, static_cast<float>(windowData.width), static_cast<float>(windowData.height));
 
 		glBindVertexArray(VAO);
 		// tell OpenGL how to interpret vertex data

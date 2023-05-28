@@ -8,7 +8,6 @@ target_sources(mandelbrot-cpp
 	PRIVATE
 		"src/Main.cpp"
 		"src/Shader.cpp"
-		"src/Build.cpp"
 		"dependencies/glad/src/glad.c"
 )
 
@@ -34,7 +33,6 @@ target_include_directories(mandelbrot-cpp
 		"dependencies/GLFW/include/"
 		"dependencies/glad/include/"
 		"dependencies/glm/"
-		"dependencies/stb/"
 )
 
 target_link_libraries(mandelbrot-cpp
