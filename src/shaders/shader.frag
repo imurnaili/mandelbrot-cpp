@@ -37,7 +37,8 @@ in vec2 bottomRightCorner;
 out vec4 FragColor;
 
 void main() {
-	vec2 c = (4 * gl_FragCoord.xy / fragWindowSize) - vec2(2.0f, 2.0f);
+	vec2 screenPos = gl_FragCoord.xy / fragWindowSize;
+	vec2 c = topLeftCorner + (bottomRightCorner - topLeftCorner) * screenPos;
 
 	vec2 z = vec2(0.0f, 0.0f);
 	int j = iterations;
