@@ -8,6 +8,8 @@
 #include <string>
 #include "Shader.hpp"
 
+bool changed = true;
+
 void logGlError(int id) {
 	GLenum err;
 	while((err = glGetError()) != GL_NO_ERROR) {
@@ -35,7 +37,7 @@ std::string readFileContents(const std::string& path) {
 
 int main(int argc, char** argv) {
 	glfwInit();
-	GLFWwindow* window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(640, 640, "Hello World", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
@@ -47,8 +49,8 @@ int main(int argc, char** argv) {
 	glfwGetFramebufferSize(window, &windowData.windowSize.x, &windowData.windowSize.y);
 	windowData.center = glm::fvec2();
 	windowData.prevMousePos = glm::fvec2();
-	windowData.topLeftCorner = glm::fvec2(-2.0f, 1.0f);
-	windowData.bottomRightCorner = glm::fvec2(2.0f, -1.0f);
+	windowData.topLeftCorner = glm::fvec2(-2.0f, 2.0f);
+	windowData.bottomRightCorner = glm::fvec2(2.0f, -2.0f);
 
 	glfwSetWindowUserPointer(window, &windowData);
 	GLint location_windowSize = shader.getUniformLocation("windowSize");
@@ -61,26 +63,28 @@ int main(int argc, char** argv) {
 		data->windowSize.x = static_cast<float>(width);
 		data->windowSize.y = static_cast<float>(height);
 		glViewport(0, 0, width, height);
+		changed = true;
 	});
 
 	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
 		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
-			glm::fvec2 mousePos(static_cast<float>(xpos) / data->windowSize.x, static_cast<float>(ypos) / data->windowSize.y);
+			glm::fvec2 mousePos(static_cast<float>(xpos), static_cast<float>(ypos));
+			glm::fvec2 mousePosDelta = data->prevMousePos - mousePos;
+			changed = true;
 		}
 		data->prevMousePos.x = static_cast<float>(xpos);
 		data->prevMousePos.y = static_cast<float>(ypos);
 	});
 
-	// glfwSetScrollCallback(window, [](GLFWwindow* window, double, double yoffset) {
-	// 	WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
-	// 	data->zoomValue += yoffset;
-	// 	if (data->zoomValue < 0) data->zoomValue = 0;
-	// 	double xpos, ypos;
-	// 	glfwGetCursorPos(window, &xpos, &ypos);
-	// 	glm::fvec2 mousePos(static_cast<float>(xpos) / data->windowSize.x, static_cast<float>(ypos) / data->windowSize.y);
-	// 	data->center = glm::mix(mousePos, data->center, 0.1f);
-	// });
+	glfwSetScrollCallback(window, [](GLFWwindow* window, double, double yoffset) {
+		std::cout << "Scroll factor: " << yoffset << std::endl;
+		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
+		glm::fvec2 scaleFactor(-0.1f, 0.1f);
+		data->topLeftCorner -= scaleFactor * glm::fvec1(static_cast<float>(yoffset));
+		data->bottomRightCorner += scaleFactor * glm::fvec1(static_cast<float>(yoffset));
+		changed = true;
+	});
 
 	// cover screen with two triangles
 	float vertices[] = {
@@ -105,23 +109,26 @@ int main(int argc, char** argv) {
 	glGenVertexArrays(1, &VAO);
 
 	while (!glfwWindowShouldClose(window)) {
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		if (changed) {
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
 
-		shader.bind();
-		shader.setVec2(location_windowSize, static_cast<float>(windowData.windowSize.x), static_cast<float>(windowData.windowSize.y));
-		shader.setVec2(location_topLeftCorner, windowData.topLeftCorner.x, windowData.topLeftCorner.y);
-		shader.setVec2(location_bottomRightCorner, windowData.bottomRightCorner.x, windowData.bottomRightCorner.y);
+			shader.bind();
+			shader.setVec2(location_windowSize, static_cast<float>(windowData.windowSize.x), static_cast<float>(windowData.windowSize.y));
+			shader.setVec2(location_topLeftCorner, windowData.topLeftCorner.x, windowData.topLeftCorner.y);
+			shader.setVec2(location_bottomRightCorner, windowData.bottomRightCorner.x, windowData.bottomRightCorner.y);
 
-		glBindVertexArray(VAO);
-		// tell OpenGL how to interpret vertex data
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-		// enable vertex attribute
-		glEnableVertexAttribArray(0);
-		// draw triangle
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindVertexArray(VAO);
+			// tell OpenGL how to interpret vertex data
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+			// enable vertex attribute
+			glEnableVertexAttribArray(0);
+			// draw triangle
+			glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		glfwSwapBuffers(window);
+			glfwSwapBuffers(window);
+			changed = false;
+		}
 		glfwPollEvents();
 	}
 
