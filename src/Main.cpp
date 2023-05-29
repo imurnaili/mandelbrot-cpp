@@ -79,10 +79,9 @@ int main(int argc, char** argv) {
 		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
 			glm::fvec2 mousePos(static_cast<float>(xpos), static_cast<float>(ypos));
-			glm::fvec2 mousePosDelta = mousePos - data->prevMousePos;
-			float upp = (data->topLeftCorner.y - data->bottomRightCorner.y) / data->windowSize.y;
-			data->topLeftCorner -= mousePosDelta * upp;
-			data->bottomRightCorner -= mousePosDelta * upp;
+			glm::fvec2 delta = (mousePos - data->prevMousePos) * ((data->topLeftCorner.y - data->bottomRightCorner.y) / data->windowSize.y);
+			data->topLeftCorner -= delta;
+			data->bottomRightCorner -= delta;
 			changed = true;
 		}
 		data->prevMousePos.x = static_cast<float>(xpos);
