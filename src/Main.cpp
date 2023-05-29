@@ -18,8 +18,7 @@ void logGlError(int id) {
 }
 
 struct WindowData {
-	glm::ivec2 windowSize;
-	glm::fvec2 center;
+	glm::fvec2 windowSize;
 	glm::fvec2 prevMousePos;
 	glm::fvec2 topLeftCorner;
 	glm::fvec2 bottomRightCorner;
@@ -43,26 +42,30 @@ int main(int argc, char** argv) {
 
 	std::string vertexShaderCode = readFileContents("shaders/mandelbrot.vert");
 	std::string fragmentShaderCode = readFileContents("shaders/mandelbrot.frag");
-	Shader shader(vertexShaderCode.c_str(), fragmentShaderCode.c_str());
+	Shader mandelbrotShader(vertexShaderCode.c_str(), fragmentShaderCode.c_str());
 
 	WindowData windowData{ };
-	glfwGetFramebufferSize(window, &windowData.windowSize.x, &windowData.windowSize.y);
-	windowData.center = glm::fvec2();
+	int windowWidth, windowHeight;
+	glfwGetFramebufferSize(window, &windowWidth, &windowHeight);
+	windowData.windowSize.x = windowWidth;
+	windowData.windowSize.y = windowHeight;
 	windowData.prevMousePos = glm::fvec2();
 	windowData.topLeftCorner = glm::fvec2(-2.0f, 2.0f);
 	windowData.bottomRightCorner = glm::fvec2(2.0f, -2.0f);
 
 	glfwSetWindowUserPointer(window, &windowData);
-	GLint location_windowSize = shader.getUniformLocation("windowSize");
-	GLint location_topLeftCorner = shader.getUniformLocation("renderTopLeftCorner");
-	GLint location_bottomRightCorner = shader.getUniformLocation("renderBottomRightCorner");
-	shader.bind();
+	GLint location_windowSize = mandelbrotShader.getUniformLocation("windowSize");
+	GLint location_topLeftCorner = mandelbrotShader.getUniformLocation("renderTopLeftCorner");
+	GLint location_bottomRightCorner = mandelbrotShader.getUniformLocation("renderBottomRightCorner");
+	mandelbrotShader.bind();
 
 	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
 		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
 		data->windowSize.x = static_cast<float>(width);
 		data->windowSize.y = static_cast<float>(height);
 		glViewport(0, 0, width, height);
+		float upp = (data->topLeftCorner.y - data->bottomRightCorner.y) / data->windowSize.y;
+		data->bottomRightCorner.x = data->topLeftCorner.x + (data->windowSize.x * upp);
 		changed = true;
 	});
 
@@ -79,7 +82,8 @@ int main(int argc, char** argv) {
 
 	glfwSetScrollCallback(window, [](GLFWwindow* window, double, double yoffset) {
 		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
-		glm::fvec2 scaleFactor(-0.1f, 0.1f);
+		glm::fvec2 rectSize(data->topLeftCorner.x - data->bottomRightCorner.x, data->topLeftCorner.y - data->bottomRightCorner.y);
+		glm::fvec2 scaleFactor = rectSize * 0.05f;
 		data->topLeftCorner -= scaleFactor * glm::fvec1(static_cast<float>(yoffset));
 		data->bottomRightCorner += scaleFactor * glm::fvec1(static_cast<float>(yoffset));
 		changed = true;
@@ -112,10 +116,10 @@ int main(int argc, char** argv) {
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			shader.bind();
-			shader.setVec2(location_windowSize, static_cast<float>(windowData.windowSize.x), static_cast<float>(windowData.windowSize.y));
-			shader.setVec2(location_topLeftCorner, windowData.topLeftCorner.x, windowData.topLeftCorner.y);
-			shader.setVec2(location_bottomRightCorner, windowData.bottomRightCorner.x, windowData.bottomRightCorner.y);
+			mandelbrotShader.bind();
+			mandelbrotShader.setVec2(location_windowSize, windowData.windowSize.x, windowData.windowSize.y);
+			mandelbrotShader.setVec2(location_topLeftCorner, windowData.topLeftCorner.x, windowData.topLeftCorner.y);
+			mandelbrotShader.setVec2(location_bottomRightCorner, windowData.bottomRightCorner.x, windowData.bottomRightCorner.y);
 
 			glBindVertexArray(VAO);
 			// tell OpenGL how to interpret vertex data
