@@ -8,7 +8,7 @@
 #include <string>
 #include "Shader.hpp"
 
-bool changed = true;
+static bool changed = true;
 //TODO: 
 // - add zooming by fathering the mouse position to the center of the screen and scaling the render area by the scroll offset (use glfwSetScrollCallback) 
 // - add panning by fathering the mouse position to the center of the screen and translating the render area by the mouse position delta (use glfwSetCursorPosCallback)
@@ -79,7 +79,10 @@ int main(int argc, char** argv) {
 		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
 			glm::fvec2 mousePos(static_cast<float>(xpos), static_cast<float>(ypos));
-			glm::fvec2 mousePosDelta = data->prevMousePos - mousePos;
+			glm::fvec2 mousePosDelta = mousePos - data->prevMousePos;
+			float upp = (data->topLeftCorner.y - data->bottomRightCorner.y) / data->windowSize.y;
+			data->topLeftCorner -= mousePosDelta * upp;
+			data->bottomRightCorner -= mousePosDelta * upp;
 			changed = true;
 		}
 		data->prevMousePos.x = static_cast<float>(xpos);
@@ -87,11 +90,16 @@ int main(int argc, char** argv) {
 	});
 
 	glfwSetScrollCallback(window, [](GLFWwindow* window, double, double yoffset) {
+		if (yoffset == 0) return;
 		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
-		glm::fvec2 rectSize(data->topLeftCorner.x - data->bottomRightCorner.x, data->topLeftCorner.y - data->bottomRightCorner.y);
-		glm::fvec2 scaleFactor = rectSize * 0.05f;
-		data->topLeftCorner -= scaleFactor * glm::fvec1(static_cast<float>(yoffset));
-		data->bottomRightCorner += scaleFactor * glm::fvec1(static_cast<float>(yoffset));
+		const float zoomFactor = 0.05f;
+		glm::fvec1 stepDirection(yoffset < 0 ? -1.0f : 1.0f);
+		glm::fvec2 scaleValue;
+		for (int stepCount = glm::abs(static_cast<int>(yoffset)); stepCount > 0; stepCount--) {
+			scaleValue = ((data->topLeftCorner - data->bottomRightCorner) * zoomFactor) * stepDirection;
+			data->topLeftCorner -= scaleValue;
+			data->bottomRightCorner += scaleValue;
+		}
 		changed = true;
 	});
 
