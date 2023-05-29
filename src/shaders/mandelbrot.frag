@@ -4,7 +4,7 @@
 // https://github.com/julesb/glsl-util
 // Additions by Johan Karlsson (DonKarlssonSan)
 
-#define cx_mul(a, b) vec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)
+#define cx_mul(a, b) dvec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)
 #define squareLength(a) abs(a.x*a.x+a.y*a.y)
 
 #define centerColor vec4(0.0f, 0.0f, 0.0f, 1.0f)
@@ -31,16 +31,16 @@ vec3 hsv2rgb(vec3 c)
 
 vec4 getColor(int i);
 
-in vec2 fragWindowSize;
-in vec2 topLeftCorner;
-in vec2 bottomRightCorner;
+flat in dvec2 fragWindowSize;
+flat in dvec2 topLeftCorner;
+flat in dvec2 bottomRightCorner;
 out vec4 FragColor;
 
 void main() {
-	vec2 screenPos = gl_FragCoord.xy / fragWindowSize;
-	vec2 c = mix(topLeftCorner, bottomRightCorner, screenPos);
+	dvec2 screenPos = gl_FragCoord.xy / fragWindowSize;
+	dvec2 c = mix(topLeftCorner, bottomRightCorner, screenPos);
 
-	vec2 z = vec2(0.0f, 0.0f);
+	dvec2 z = dvec2(0.0f, 0.0f);
 	int j = iterations;
 	for(int i = 0; i < iterations; i++) {
 		z = cx_mul(z, z) + c;
@@ -48,8 +48,8 @@ void main() {
 			j = min(j, i);
 		}
 	}
+
 	FragColor = j == iterations ? centerColor : getColor(j);
-	
 }
 
 vec4 getColor(int i) {

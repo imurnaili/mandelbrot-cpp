@@ -29,6 +29,10 @@ void Shader::setVec2(GLint location, float x, float y) {
 	glUniform2f(location, x, y);
 }
 
+void Shader::setdVec2(GLint location, double x, double y) {
+	glUniform2d(location, x, y);
+}
+
 GLint Shader::getUniformLocation(const std::string& name) {
 	return glGetUniformLocation(ID, name.c_str());
 }

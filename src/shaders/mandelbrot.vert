@@ -1,12 +1,12 @@
 #version 450
 
 layout(location = 0) in vec3 aPos;
-uniform vec2 windowSize;
-uniform vec2 renderTopLeftCorner;
-uniform vec2 renderBottomRightCorner;
-out vec2 fragWindowSize;
-out vec2 topLeftCorner;
-out vec2 bottomRightCorner;
+uniform dvec2 windowSize;
+uniform dvec2 renderTopLeftCorner;
+uniform dvec2 renderBottomRightCorner;
+out dvec2 fragWindowSize;
+out dvec2 topLeftCorner;
+out dvec2 bottomRightCorner;
 
 void main() {
 	gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
