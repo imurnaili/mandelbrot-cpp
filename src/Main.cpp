@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <string>
+#include <vector>
 #include "Shader.hpp"
 
 static bool changed = true;
@@ -63,6 +64,7 @@ int main(int argc, char** argv) {
 	GLint location_windowSize = mandelbrotShader.getUniformLocation("windowSize");
 	GLint location_topLeftCorner = mandelbrotShader.getUniformLocation("topLeftCorner");
 	GLint location_bottomRightCorner = mandelbrotShader.getUniformLocation("bottomRightCorner");
+	GLint location_textureId = mandelbrotShader.getUniformLocation("textureSampler");
 	mandelbrotShader.bind();
 
 	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
@@ -114,39 +116,85 @@ int main(int argc, char** argv) {
 		-1.0f, -1.0f,  0.0f  // bottom left
 	};
 
-	unsigned int VBO;
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	float uvs[] = {
+		// first triangle
+		0.0f, 0.0f, // bottom left
+		1.0f, 0.0f, // bottom right
+		1.0f, 1.0f, // top right
+		// second triangle
+		1.0f, 0.0f, // top left
+		1.0f, 1.0f, // top right
+		0.0f, 0.0f  // bottom left
+	};
 
-	// copy vertices into buffer
+	// temp texture creation code
+	glm::ivec2 textureSize(640, 640);
+	std::vector<uint8_t> texData(textureSize.x * textureSize.y * 3);
+	for (int i = 0; i < texData.size(); i += 3) {
+		texData[i  ] = i % 2 == 0 ? 0xff : 0x00;
+		texData[i+1] = i % 2 == 0 ? 0x00 : 0xff;
+		texData[i+2] = 0x00;
+	}
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureSize.x, textureSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, texData.data());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	GLuint vertexArray;
+	glGenVertexArrays(1, &vertexArray);
+	glBindVertexArray(vertexArray);
+
+	GLuint vertexBuffer;
+	glGenBuffers(1, &vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	// create vertex array object
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
+
+	GLuint uvBuffer;
+	glGenBuffers(1, &uvBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(uvs), uvs, GL_STATIC_DRAW);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	while (!glfwWindowShouldClose(window)) {
 		if (changed) {
-			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			mandelbrotShader.bind();
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, texture);
+			glUniform1i(location_textureId, 0);
 			mandelbrotShader.setdVec2(location_windowSize, windowData.windowSize.x, windowData.windowSize.y);
 			mandelbrotShader.setdVec2(location_topLeftCorner, windowData.topLeftCorner.x, windowData.topLeftCorner.y);
 			mandelbrotShader.setdVec2(location_bottomRightCorner, windowData.bottomRightCorner.x, windowData.bottomRightCorner.y);
 
-			glBindVertexArray(VAO);
-			// tell OpenGL how to interpret vertex data
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-			// enable vertex attribute
 			glEnableVertexAttribArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), reinterpret_cast<void*>(0));
+
+			glEnableVertexAttribArray(1);
+			glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), reinterpret_cast<void*>(0));
+
 			// draw triangle
 			glDrawArrays(GL_TRIANGLES, 0, 6);
+
+			glDisableVertexAttribArray(0);
+			glDisableVertexAttribArray(1);
 
 			glfwSwapBuffers(window);
 			changed = false;
 		}
 		glfwPollEvents();
 	}
+
+	// cleanup
+	glDeleteBuffers(1, &vertexBuffer);
+	glDeleteBuffers(1, &uvBuffer);
+	glDeleteTextures(1, &texture);
+	glDeleteVertexArrays(1, &vertexArray);
 
 	glfwDestroyWindow(window);
 	glfwTerminate();

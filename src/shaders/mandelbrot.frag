@@ -34,6 +34,8 @@ vec4 getColor(int i);
 uniform dvec2 windowSize;
 uniform dvec2 topLeftCorner;
 uniform dvec2 bottomRightCorner;
+uniform sampler2D textureSampler;
+in vec2 UV;
 out vec4 FragColor;
 
 void main() {
