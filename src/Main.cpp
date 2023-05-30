@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include "Shader.hpp"
+#include "ScreenPlane.hpp"
 
 static bool changed = true;
 //TODO: 
@@ -117,71 +118,23 @@ int main(int argc, char** argv) {
 		changed = true;
 	});
 
-	std::vector<float> vertices {
-		-1.0f, -1.0f,  0.0f, // bottom left
-		 1.0f, -1.0f,  0.0f, // bottom right
-		 1.0f,  1.0f,  0.0f, // top right
-		-1.0f,  1.0f,  0.0f  // top left
-	};
-
-	std::vector<float> uvs {
-		0.0f, 0.0f, // bottom left
-		1.0f, 0.0f, // bottom right
-		1.0f, 1.0f, // top right
-		0.0f, 1.0f  // top left
-	};
-
-	std::vector<unsigned int> indices {
-		0, 1, 2, // bottom right triangle
-		2, 3, 0  // top left triangle
-	};
-
-	// Buffers
-	GLuint vertexArray, vertexBuffer, uvBuffer, indexBuffer;
-	glCreateVertexArrays(1, &vertexArray);
-	
-	glCreateBuffers(1, &vertexBuffer);
-	glNamedBufferData(vertexBuffer, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-	glEnableVertexArrayAttrib(vertexArray, 0);
-	glVertexArrayAttribBinding(vertexArray, 0, 0);
-	glVertexArrayAttribFormat(vertexArray, 0, 3, GL_FLOAT, GL_FALSE, 0);
-	glVertexArrayVertexBuffer(vertexArray, 0, vertexBuffer, 0, 3 * sizeof(float));
-
-	glCreateBuffers(1, &uvBuffer);
-	glNamedBufferData(uvBuffer, uvs.size() * sizeof(float), uvs.data(), GL_STATIC_DRAW);
-	glEnableVertexArrayAttrib(vertexArray, 1);
-	glVertexArrayAttribBinding(vertexArray, 1, 1);
-	glVertexArrayAttribFormat(vertexArray, 1, 2, GL_FLOAT, GL_FALSE, 0);
-	glVertexArrayVertexBuffer(vertexArray, 1, uvBuffer, 0, 2 * sizeof(float));
-
-	glCreateBuffers(1, &indexBuffer);
-	glNamedBufferData(indexBuffer, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-	glVertexArrayElementBuffer(vertexArray, indexBuffer);
-
-	glBindVertexArray(vertexArray);
+	ScreenPlane screen = ScreenPlane();
+	screen.setShader(&mandelbrotShader);
 
 	while (!glfwWindowShouldClose(window)) {
 		if (changed) {
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			mandelbrotShader.bind();
 			mandelbrotShader.setdVec2(location_windowSize, windowData.windowSize.x, windowData.windowSize.y);
 			mandelbrotShader.setdVec2(location_topLeftCorner, windowData.topLeftCorner.x, windowData.topLeftCorner.y);
 			mandelbrotShader.setdVec2(location_bottomRightCorner, windowData.bottomRightCorner.x, windowData.bottomRightCorner.y);
-
-			glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+			screen.draw();
 
 			glfwSwapBuffers(window);
 			changed = false;
 		}
 		glfwPollEvents();
 	}
-
-	// cleanup
-	glDeleteBuffers(1, &vertexBuffer);
-	glDeleteBuffers(1, &uvBuffer);
-	glDeleteBuffers(1, &indexBuffer);
-	glDeleteVertexArrays(1, &vertexArray);
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
