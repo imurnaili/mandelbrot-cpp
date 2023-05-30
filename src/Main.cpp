@@ -17,13 +17,6 @@ static bool changed = true;
 // - add color modes (use glfwSetKeyCallback)
 // - add julia set 
 
-void logGlError(int id) {
-	GLenum err;
-	while((err = glGetError()) != GL_NO_ERROR) {
-		std::cout << id << " - GL Error: 0x" << std::setfill('0') << std::setw(4) << std::hex << err << std::endl;
-	}
-}
-
 struct WindowData {
 	glm::dvec2 windowSize;
 	glm::dvec2 prevMousePos;
@@ -84,7 +77,6 @@ int main(int argc, char** argv) {
 	windowData.bottomRightCorner = glm::dvec2(2.0f, -2.0f);
 
 	glfwSetWindowUserPointer(window, &windowData);
-	GLint location_windowSize = mandelbrotShader.getUniformLocation("windowSize");
 	GLint location_textureId = mandelbrotShader.getUniformLocation("textureSampler");
 	GLint c_topLeftCorner = computeShader.getUniformLocation("topLeftCorner");
 	GLint c_bottomRightCorner = computeShader.getUniformLocation("bottomRightCorner");
@@ -197,7 +189,6 @@ int main(int argc, char** argv) {
 
 			mandelbrotShader.bind();
 			mandelbrotShader.setiVec1(location_textureId, 0);
-			mandelbrotShader.setdVec2(location_windowSize, windowData.windowSize.x, windowData.windowSize.y);
 			glBindTextureUnit(0, texture);
 
 			// draw triangle
