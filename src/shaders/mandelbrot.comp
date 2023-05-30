@@ -21,14 +21,57 @@ vec3 hsv2rgb(vec3 c)
 }
 
 vec4 getColor(int i) {
+	// select from modes by commenting in and out the code blocks below
+
+	// select from color array (wikipedia)
+	vec4 colors[16] = vec4[](
+		vec4(float( 66)/255, float( 30)/255, float( 15)/255, 1.0f), // brown 3
+		vec4(float( 25)/255, float(  7)/255, float( 26)/255, 1.0f), // dark violett
+		vec4(float(  9)/255, float(  1)/255, float( 47)/255, 1.0f), // darkest blue
+		vec4(float(  4)/255, float(  4)/255, float( 73)/255, 1.0f), // blue 5
+		vec4(float(  0)/255, float(  7)/255, float(100)/255, 1.0f), // blue 4
+		vec4(float( 12)/255, float( 44)/255, float(138)/255, 1.0f), // blue 3
+		vec4(float( 24)/255, float( 82)/255, float(177)/255, 1.0f), // blue 2
+		vec4(float( 57)/255, float(125)/255, float(209)/255, 1.0f), // blue 1
+		vec4(float(134)/255, float(181)/255, float(229)/255, 1.0f), // blue 0
+		vec4(float(211)/255, float(236)/255, float(248)/255, 1.0f), // lightest blue
+		vec4(float(241)/255, float(233)/255, float(191)/255, 1.0f), // lightest yellow
+		vec4(float(248)/255, float(201)/255, float( 95)/255, 1.0f), // light yellow
+		vec4(float(255)/255, float(170)/255, float(  0)/255, 1.0f), // dirty yellow
+		vec4(float(204)/255, float(128)/255, float(  0)/255, 1.0f), // brown 0
+		vec4(float(153)/255, float( 87)/255, float(  0)/255, 1.0f), // brown 1
+		vec4(float(106)/255, float( 52)/255, float(  3)/255, 1.0f) // brown 2
+	);
+	return colors[i % 16];
+
+
+	// lerp between black, green and white
+	// green and white glow benefits from low iterations and high resolution
+	// float t = float(i) / float(iterations);
+    // vec4 black = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    // vec4 green = vec4(0.0f, 1.0f, 0.0f, 1.0f);
+    // vec4 white = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    // if (t < 0.5f) {
+    //     return mix(black, green, t * 2.0f);
+    // } else {
+    //     return mix(green, white, (t - 0.5f) * 2.0f);
+    // }
+
+	// lerp betweent two green and white
+	// float t = float(i) / float(iterations);
+	// return mix(vec4(0.0f, 1.0f, 0.0f, 1.0f), vec4(1.0f, 1.0f, 1.0f, 1.0f), t);
+
+
+	//schwarz weiß
+	//return vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// hsv color wheel
-	int repeat = 100;
-	float h = float(i % repeat) / repeat;
-	vec3 color = hsv2rgb(vec3(h, 1.0f, 1.0f));
-	return vec4(color, 1.0f);
+	// int repeat = 100;
+	// float h = float(i % repeat) / repeat;
+	// vec3 color = hsv2rgb(vec3(h, 1.0f, 1.0f));
+	// return vec4(color, 1.0f);
 	
-	//hyperbolisch 
+	//hyperbolisch (sieht cool aus)
 	//return vec4(i/100.0f, i/100.0f, 0.0f, 1.0f);
 }
 
