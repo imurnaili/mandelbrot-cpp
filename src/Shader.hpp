@@ -1,18 +1,34 @@
+#pragma once
+
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <string>
 
 class Shader {
 public:
-	Shader(const char* vertexShaderSource, const char* fragmentShaderSource);
+	enum class ShaderType : uint8_t {
+		NONE = 0,
+		RENDER = 1,
+		COMPUTE = 2
+	};
+
+public:
+	Shader(ShaderType type, const char* vertexShaderSource, const char* fragmentShaderSource);
+	Shader(const Shader& other);
+	~Shader();
+
 	void bind();
+	void setiVec1(GLint location, int x);
 	void setVec2(GLint location, float x, float y);
 	void setdVec2(GLint location, double x, double y);
+
+	void dispatch(glm::ivec3 workgroupSize);
+	void await();
+
 	GLint getUniformLocation(const std::string& name);
-	//destructors
-	~Shader();
-	//copy
-	Shader(const Shader& other);
+	ShaderType getType();
+
 private:
 	unsigned int ID;
+	ShaderType type;
 };

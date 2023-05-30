@@ -1,5 +1,36 @@
 #version 450
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+layout(rgba32f, binding = 0) uniform image2D textureSampler;
+
+layout(location = 0) uniform dvec2 topLeftCorner;
+layout(location = 1) uniform dvec2 bottomRightCorner;
+
+#define centerColor vec4(0.0f, 0.0f, 0.0f, 1.0f)
+#define iterations 1000
+
+#define cx_mul(a, b) dvec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)
+#define squareLength(a) abs(a.x*a.x+a.y*a.y)
+
+vec4 getColor(int i) {
+	return vec4(i/100.0f, i/100.0f, 0.0f, 1.0f);
+}
 
 void main() {
+	ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 	
+	dvec2 screenPos = dvec2(gl_GlobalInvocationID.xy) / (dvec2(gl_NumWorkGroups.xy) * 8.0);
+	dvec2 c = mix(topLeftCorner, bottomRightCorner, screenPos);
+
+	dvec2 z = dvec2(0.0f, 0.0f);
+	int j = iterations;
+	for(int i = 0; i < iterations; i++) {
+		z = cx_mul(z, z) + c;
+		if (squareLength(z) > 4.0f) {
+			j = min(j, i);
+		}
+	}
+
+	vec4 pixelColor = j == iterations ? centerColor : getColor(j);
+
+	imageStore(textureSampler, pixelCoords, pixelColor);
 }
