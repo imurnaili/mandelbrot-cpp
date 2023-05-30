@@ -14,14 +14,7 @@ static bool changed = true;
 // - add panning by fathering the mouse position to the center of the screen and translating the render area by the mouse position delta (use glfwSetCursorPosCallback)
 // - add color palette (use glfwSetKeyCallback)
 // - add color modes (use glfwSetKeyCallback)
-// - add julia set 
-
-void logGlError(int id) {
-	GLenum err;
-	while((err = glGetError()) != GL_NO_ERROR) {
-		std::cout << id << " - GL Error: 0x" << std::setfill('0') << std::setw(4) << std::hex << err << std::endl;
-	}
-}
+// - add julia set
 
 struct WindowData {
 	glm::dvec2 windowSize;
@@ -40,11 +33,31 @@ std::string readFileContents(const std::string& path) {
 	return ss.str();
 }
 
+void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
+	std::cout << "OpenGL '" << (type == GL_DEBUG_TYPE_ERROR ? "ERROR"
+			: type == GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR ? "DEPRECATED"
+			: type == GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR ? "UNDEFINED"
+			: type == GL_DEBUG_TYPE_PORTABILITY ? "PORTABILITY"
+			: type == GL_DEBUG_TYPE_PERFORMANCE ? "PERFORMANCE"
+			: type == GL_DEBUG_TYPE_MARKER ? "MARKER"
+			: type == GL_DEBUG_TYPE_PUSH_GROUP ? "PUSH_GROUP"
+			: type == GL_DEBUG_TYPE_POP_GROUP ? "POP_GROUP"
+			: type == GL_DEBUG_TYPE_OTHER ? "OTHER" : "-")
+		<< "' (" << (severity == GL_DEBUG_SEVERITY_HIGH ? "HIGH"
+			: severity == GL_DEBUG_SEVERITY_MEDIUM ? "MEDIUM"
+			: severity == GL_DEBUG_SEVERITY_LOW ? "LOW"
+			: severity == GL_DEBUG_SEVERITY_NOTIFICATION ? "NOTIFICATION" : "-")
+		<< "): " << message << std::endl;
+}
+
 int main(int argc, char** argv) {
 	glfwInit();
 	GLFWwindow* window = glfwCreateWindow(640, 640, "Hello World", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+
+	glEnable(GL_DEBUG_OUTPUT);
+	glDebugMessageCallback(MessageCallback, 0);
 
 	std::string vertexShaderCode = readFileContents("shaders/mandelbrot.vert");
 	std::string fragmentShaderCode = readFileContents("shaders/mandelbrot.frag");
