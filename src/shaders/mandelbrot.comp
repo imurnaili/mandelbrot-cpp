@@ -21,12 +21,14 @@ vec3 hsv2rgb(vec3 c)
 }
 
 vec4 getColor(int i) {
-	int repeat = 20;
+
+	// hsv color wheel
+	int repeat = 100;
 	float h = float(i % repeat) / repeat;
 	vec3 color = hsv2rgb(vec3(h, 1.0f, 1.0f));
 	return vec4(color, 1.0f);
 	
-	
+	//hyperbolisch 
 	//return vec4(i/100.0f, i/100.0f, 0.0f, 1.0f);
 }
 
