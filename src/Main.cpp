@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <string>
+#include <vector>
 #include "Shader.hpp"
 
 static bool changed = true;
@@ -52,16 +53,19 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
 
 int main(int argc, char** argv) {
 	glfwInit();
-	GLFWwindow* window = glfwCreateWindow(640, 640, "Hello World", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(640, 640, "Mandelbrot", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
+	glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
 
 	std::string vertexShaderCode = readFileContents("shaders/mandelbrot.vert");
 	std::string fragmentShaderCode = readFileContents("shaders/mandelbrot.frag");
 	Shader mandelbrotShader(Shader::ShaderType::RENDER, vertexShaderCode.c_str(), fragmentShaderCode.c_str());
+	std::string computeShaderCode = readFileContents("shaders/mandelbrot.comp");
+	Shader computeShader(Shader::ShaderType::COMPUTE, computeShaderCode.c_str(), nullptr);
 
 	WindowData windowData{ };
 	int windowWidth, windowHeight;
@@ -76,7 +80,6 @@ int main(int argc, char** argv) {
 	GLint location_windowSize = mandelbrotShader.getUniformLocation("windowSize");
 	GLint location_topLeftCorner = mandelbrotShader.getUniformLocation("topLeftCorner");
 	GLint location_bottomRightCorner = mandelbrotShader.getUniformLocation("bottomRightCorner");
-	mandelbrotShader.bind();
 
 	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
 		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
@@ -115,31 +118,37 @@ int main(int argc, char** argv) {
 		changed = true;
 	});
 
-	// cover screen with two triangles
-	float vertices[] = {
-		// first triangle
+	std::vector<float> vertices {
 		-1.0f, -1.0f,  0.0f, // bottom left
 		 1.0f, -1.0f,  0.0f, // bottom right
 		 1.0f,  1.0f,  0.0f, // top right
-		// second triangle
-		-1.0f,  1.0f,  0.0f, // top left
-		 1.0f,  1.0f,  0.0f, // top right
-		-1.0f, -1.0f,  0.0f  // bottom left
+		-1.0f,  1.0f,  0.0f  // top left
 	};
 
-	unsigned int VBO;
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	std::vector<unsigned int> indices {
+		0, 1, 2, // bottom right triangle
+		2, 3, 0  // top left triangle
+	};
 
-	// copy vertices into buffer
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	// create vertex array object
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
+	// Buffers
+	GLuint vertexArray, vertexBuffer, indexBuffer;
+	glCreateVertexArrays(1, &vertexArray);
+	
+	glCreateBuffers(1, &vertexBuffer);
+	glNamedBufferData(vertexBuffer, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+	glEnableVertexArrayAttrib(vertexArray, 0);
+	glVertexArrayAttribBinding(vertexArray, 0, 0);
+	glVertexArrayAttribFormat(vertexArray, 0, 3, GL_FLOAT, GL_FALSE, 0);
+	glVertexArrayVertexBuffer(vertexArray, 0, vertexBuffer, 0, 3 * sizeof(float));
+
+	glCreateBuffers(1, &indexBuffer);
+	glNamedBufferData(indexBuffer, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+	glVertexArrayElementBuffer(vertexArray, indexBuffer);
+
+	glBindVertexArray(vertexArray);
 
 	while (!glfwWindowShouldClose(window)) {
 		if (changed) {
-			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			mandelbrotShader.bind();
@@ -147,19 +156,18 @@ int main(int argc, char** argv) {
 			mandelbrotShader.setdVec2(location_topLeftCorner, windowData.topLeftCorner.x, windowData.topLeftCorner.y);
 			mandelbrotShader.setdVec2(location_bottomRightCorner, windowData.bottomRightCorner.x, windowData.bottomRightCorner.y);
 
-			glBindVertexArray(VAO);
-			// tell OpenGL how to interpret vertex data
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-			// enable vertex attribute
-			glEnableVertexAttribArray(0);
-			// draw triangle
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 
 			glfwSwapBuffers(window);
 			changed = false;
 		}
 		glfwPollEvents();
 	}
+
+	// cleanup
+	glDeleteBuffers(1, &vertexBuffer);
+	glDeleteBuffers(1, &indexBuffer);
+	glDeleteVertexArrays(1, &vertexArray);
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
