@@ -1,5 +1,4 @@
 #include <iostream>
-#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <glad/glad.h>
@@ -125,13 +124,20 @@ int main(int argc, char** argv) {
 		-1.0f,  1.0f,  0.0f  // top left
 	};
 
+	std::vector<float> uvs {
+		0.0f, 0.0f, // bottom left
+		1.0f, 0.0f, // bottom right
+		1.0f, 1.0f, // top right
+		0.0f, 1.0f  // top left
+	};
+
 	std::vector<unsigned int> indices {
 		0, 1, 2, // bottom right triangle
 		2, 3, 0  // top left triangle
 	};
 
 	// Buffers
-	GLuint vertexArray, vertexBuffer, indexBuffer;
+	GLuint vertexArray, vertexBuffer, uvBuffer, indexBuffer;
 	glCreateVertexArrays(1, &vertexArray);
 	
 	glCreateBuffers(1, &vertexBuffer);
@@ -140,6 +146,13 @@ int main(int argc, char** argv) {
 	glVertexArrayAttribBinding(vertexArray, 0, 0);
 	glVertexArrayAttribFormat(vertexArray, 0, 3, GL_FLOAT, GL_FALSE, 0);
 	glVertexArrayVertexBuffer(vertexArray, 0, vertexBuffer, 0, 3 * sizeof(float));
+
+	glCreateBuffers(1, &uvBuffer);
+	glNamedBufferData(uvBuffer, uvs.size() * sizeof(float), uvs.data(), GL_STATIC_DRAW);
+	glEnableVertexArrayAttrib(vertexArray, 1);
+	glVertexArrayAttribBinding(vertexArray, 1, 1);
+	glVertexArrayAttribFormat(vertexArray, 1, 2, GL_FLOAT, GL_FALSE, 0);
+	glVertexArrayVertexBuffer(vertexArray, 1, uvBuffer, 0, 2 * sizeof(float));
 
 	glCreateBuffers(1, &indexBuffer);
 	glNamedBufferData(indexBuffer, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
@@ -166,6 +179,7 @@ int main(int argc, char** argv) {
 
 	// cleanup
 	glDeleteBuffers(1, &vertexBuffer);
+	glDeleteBuffers(1, &uvBuffer);
 	glDeleteBuffers(1, &indexBuffer);
 	glDeleteVertexArrays(1, &vertexArray);
 
