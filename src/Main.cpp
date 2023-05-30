@@ -174,10 +174,10 @@ int main(int argc, char** argv) {
 	glCreateBuffers(1, &uvBuffer);
 	glNamedBufferData(uvBuffer, uvs.size() * sizeof(float), uvs.data(), GL_STATIC_DRAW);
 	glEnableVertexArrayAttrib(vertexArray, 1);
-	glVertexArrayAttribBinding(vertexArray, 1, 0);
+	glVertexArrayAttribBinding(vertexArray, 1, 1);
 	glVertexArrayAttribFormat(vertexArray, 1, 2, GL_FLOAT, GL_FALSE, 0);
 	glVertexArrayVertexBuffer(vertexArray, 1, uvBuffer, 0, 2 * sizeof(float));
-	
+
 	glCreateBuffers(1, &indexBuffer);
 	glNamedBufferData(indexBuffer, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 	glVertexArrayElementBuffer(vertexArray, indexBuffer);
