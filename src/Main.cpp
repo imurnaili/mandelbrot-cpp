@@ -61,8 +61,8 @@ int main(int argc, char** argv) {
 
 	glfwSetWindowUserPointer(window, &windowData);
 	GLint location_windowSize = mandelbrotShader.getUniformLocation("windowSize");
-	GLint location_topLeftCorner = mandelbrotShader.getUniformLocation("renderTopLeftCorner");
-	GLint location_bottomRightCorner = mandelbrotShader.getUniformLocation("renderBottomRightCorner");
+	GLint location_topLeftCorner = mandelbrotShader.getUniformLocation("topLeftCorner");
+	GLint location_bottomRightCorner = mandelbrotShader.getUniformLocation("bottomRightCorner");
 	mandelbrotShader.bind();
 
 	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {

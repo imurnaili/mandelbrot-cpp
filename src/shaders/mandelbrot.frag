@@ -31,13 +31,13 @@ vec3 hsv2rgb(vec3 c)
 
 vec4 getColor(int i);
 
-flat in dvec2 fragWindowSize;
-flat in dvec2 topLeftCorner;
-flat in dvec2 bottomRightCorner;
+uniform dvec2 windowSize;
+uniform dvec2 topLeftCorner;
+uniform dvec2 bottomRightCorner;
 out vec4 FragColor;
 
 void main() {
-	dvec2 screenPos = gl_FragCoord.xy / fragWindowSize;
+	dvec2 screenPos = gl_FragCoord.xy / windowSize;
 	dvec2 c = mix(topLeftCorner, bottomRightCorner, screenPos);
 
 	dvec2 z = dvec2(0.0f, 0.0f);
