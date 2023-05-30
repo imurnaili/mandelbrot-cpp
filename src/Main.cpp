@@ -24,6 +24,9 @@ struct WindowData {
 	glm::dvec2 prevMousePos;
 	glm::dvec2 topLeftCorner;
 	glm::dvec2 bottomRightCorner;
+	Texture* texture;
+
+	~WindowData() { delete texture; }
 };
 
 std::string readFileContents(const std::string& path) {
@@ -77,6 +80,7 @@ int main(int argc, char** argv) {
 	windowData.prevMousePos = glm::dvec2();
 	windowData.topLeftCorner = glm::dvec2(-2.0f, 2.0f);
 	windowData.bottomRightCorner = glm::dvec2(2.0f, -2.0f);
+	windowData.texture = new Texture(glm::ivec2(windowData.windowSize), Texture::Format::RGBA32F, Texture::Access::WRITE_ONLY);
 
 	glfwSetWindowUserPointer(window, &windowData);
 	GLint location_textureId = mandelbrotShader.getUniformLocation("textureSampler");
@@ -88,6 +92,7 @@ int main(int argc, char** argv) {
 		data->windowSize.x = width;
 		data->windowSize.y = height;
 		glViewport(0, 0, width, height);
+		data->texture->resize(glm::ivec2(width, height));
 		double upp = (data->topLeftCorner.y - data->bottomRightCorner.y) / data->windowSize.y;
 		data->bottomRightCorner.x = data->topLeftCorner.x + (data->windowSize.x * upp);
 		changed = true;
@@ -120,8 +125,6 @@ int main(int argc, char** argv) {
 		changed = true;
 	});
 
-	Texture texture = Texture(glm::uvec2(640, 640));
-
 	ScreenPlane screen = ScreenPlane(1.0f);
 	screen.setShader(&mandelbrotShader);
 
@@ -131,12 +134,12 @@ int main(int argc, char** argv) {
 
 			computeShader.setdVec2(c_topLeftCorner, windowData.topLeftCorner.x, windowData.topLeftCorner.y);
 			computeShader.setdVec2(c_bottomRightCorner, windowData.bottomRightCorner.x, windowData.bottomRightCorner.y);
-			computeShader.bindTexture(texture, 0);
-			computeShader.dispatch(glm::ivec3(texture.getSize() / 8, 1));
+			computeShader.bindTexture(*windowData.texture, 0);
+			computeShader.dispatch(glm::ivec3(windowData.texture->getSize() / 8, 1));
 			computeShader.await();
 
 			mandelbrotShader.setiVec1(location_textureId, 0);
-			mandelbrotShader.bindTexture(texture, 0);
+			mandelbrotShader.bindTexture(*windowData.texture, 0);
 
 			screen.draw();
 
