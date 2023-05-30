@@ -9,6 +9,7 @@
 #include <vector>
 #include "Shader.hpp"
 #include "ScreenPlane.hpp"
+#include "Texture.hpp"
 
 static bool changed = true;
 //TODO: 
@@ -60,7 +61,7 @@ int main(int argc, char** argv) {
 
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
 
 	std::string vertexShaderCode = readFileContents("shaders/mandelbrot.vert");
 	std::string fragmentShaderCode = readFileContents("shaders/mandelbrot.frag");
@@ -119,16 +120,7 @@ int main(int argc, char** argv) {
 		changed = true;
 	});
 
-	// temp texture creation code
-	glm::ivec2 textureSize(640, 640);
-	GLuint texture;
-	glCreateTextures(GL_TEXTURE_2D, 1, &texture);
-	glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTextureStorage2D(texture, 1, GL_RGBA32F, textureSize.x, textureSize.y);
-	glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+	Texture texture = Texture(glm::uvec2(640, 640));
 
 	ScreenPlane screen = ScreenPlane(1.0f);
 	screen.setShader(&mandelbrotShader);
@@ -139,12 +131,12 @@ int main(int argc, char** argv) {
 
 			computeShader.setdVec2(c_topLeftCorner, windowData.topLeftCorner.x, windowData.topLeftCorner.y);
 			computeShader.setdVec2(c_bottomRightCorner, windowData.bottomRightCorner.x, windowData.bottomRightCorner.y);
-			glBindTextureUnit(0, texture);
-			computeShader.dispatch(glm::ivec3(textureSize / 8, 1));
+			computeShader.bindTexture(texture, 0);
+			computeShader.dispatch(glm::ivec3(texture.getSize() / 8, 1));
 			computeShader.await();
 
 			mandelbrotShader.setiVec1(location_textureId, 0);
-			glBindTextureUnit(0, texture);
+			mandelbrotShader.bindTexture(texture, 0);
 
 			screen.draw();
 
@@ -153,9 +145,6 @@ int main(int argc, char** argv) {
 		}
 		glfwPollEvents();
 	}
-
-	// cleanup
-	glDeleteTextures(1, &texture);
 
 	glfwDestroyWindow(window);
 	glfwTerminate();

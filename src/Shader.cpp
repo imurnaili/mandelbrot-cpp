@@ -35,6 +35,11 @@ void Shader::bind() {
 	glUseProgram(ID);
 }
 
+void Shader::bindTexture(Texture& texture, uint8_t slot) {
+	bind();
+	texture.bind(slot);
+}
+
 void Shader::setiVec1(GLint location, int x) {
 	bind();
 	glUniform1i(location, x);
