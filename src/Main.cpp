@@ -66,8 +66,8 @@ int main(int argc, char** argv) {
 	glDebugMessageCallback(MessageCallback, 0);
 	glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
 
-	std::string vertexShaderCode = readFileContents("shaders/mandelbrot.vert");
-	std::string fragmentShaderCode = readFileContents("shaders/mandelbrot.frag");
+	std::string vertexShaderCode = readFileContents("shaders/texture.vert");
+	std::string fragmentShaderCode = readFileContents("shaders/texture.frag");
 	Shader mandelbrotShader(Shader::ShaderType::RENDER, vertexShaderCode.c_str(), fragmentShaderCode.c_str());
 	std::string computeShaderCode = readFileContents("shaders/mandelbrot.comp");
 	Shader computeShader(Shader::ShaderType::COMPUTE, computeShaderCode.c_str(), nullptr);

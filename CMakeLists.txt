@@ -29,8 +29,8 @@ add_custom_command(TARGET mandelbrot-cpp PRE_BUILD
 
 add_custom_command(TARGET mandelbrot-cpp POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different
-		"${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/mandelbrot.vert"
-		"${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/mandelbrot.frag"
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/texture.vert"
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/texture.frag"
 		"${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/mandelbrot.comp"
 		"${PROJECT_BINARY_DIR}/$<CONFIG>/shaders"
 )
