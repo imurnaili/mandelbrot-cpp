@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
 
 	std::string vertexShaderCode = readFileContents("shaders/mandelbrot.vert");
 	std::string fragmentShaderCode = readFileContents("shaders/mandelbrot.frag");
-	Shader mandelbrotShader(vertexShaderCode.c_str(), fragmentShaderCode.c_str());
+	Shader mandelbrotShader(Shader::ShaderType::RENDER, vertexShaderCode.c_str(), fragmentShaderCode.c_str());
 
 	WindowData windowData{ };
 	int windowWidth, windowHeight;
