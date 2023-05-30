@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
 		changed = true;
 	});
 
-	ScreenPlane screen = ScreenPlane();
+	ScreenPlane screen = ScreenPlane(1.0f);
 	screen.setShader(&mandelbrotShader);
 
 	while (!glfwWindowShouldClose(window)) {

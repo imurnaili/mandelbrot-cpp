@@ -4,7 +4,7 @@
 
 class ScreenPlane {
 public:
-	ScreenPlane();
+	ScreenPlane(float zValue);
 	~ScreenPlane();
 
 	void setShader(Shader* shader);

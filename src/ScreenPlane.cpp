@@ -1,26 +1,27 @@
 #include "ScreenPlane.hpp"
 #include <vector>
 
-std::vector<float> vertices {
-	-1.0f, -1.0f,  0.0f, // bottom left
-	 1.0f, -1.0f,  0.0f, // bottom right
-	 1.0f,  1.0f,  0.0f, // top right
-	-1.0f,  1.0f,  0.0f  // top left
-};
+ScreenPlane::ScreenPlane(float zValue) {
 
-std::vector<float> uvs {
-	0.0f, 0.0f, // bottom left
-	1.0f, 0.0f, // bottom right
-	1.0f, 1.0f, // top right
-	0.0f, 1.0f  // top left
-};
+	std::vector<float> vertices {
+		-1.0f, -1.0f, zValue, // bottom left
+		 1.0f, -1.0f, zValue, // bottom right
+		 1.0f,  1.0f, zValue, // top right
+		-1.0f,  1.0f, zValue  // top left
+	};
 
-std::vector<unsigned int> indices {
-	0, 1, 2, // bottom right triangle
-	2, 3, 0  // top left triangle
-};
+	static std::vector<float> uvs {
+		0.0f, 0.0f, // bottom left
+		1.0f, 0.0f, // bottom right
+		1.0f, 1.0f, // top right
+		0.0f, 1.0f  // top left
+	};
 
-ScreenPlane::ScreenPlane() {
+	static std::vector<unsigned int> indices {
+		0, 1, 2, // bottom right triangle
+		2, 3, 0  // top left triangle
+	};
+
 	glCreateVertexArrays(1, &vertexArray);
 	
 	glCreateBuffers(1, &vertexBuffer);
@@ -56,5 +57,5 @@ void ScreenPlane::setShader(Shader* shader) {
 void ScreenPlane::draw() {
 	glBindVertexArray(vertexArray);
 	shader->bind();
-	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
