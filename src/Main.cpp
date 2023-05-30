@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include "Shader.hpp"
+#include "ScreenPlane.hpp"
 
 static bool changed = true;
 //TODO: 
@@ -118,25 +119,6 @@ int main(int argc, char** argv) {
 		changed = true;
 	});
 
-	std::vector<float> vertices {
-		-1.0f, -1.0f,  0.0f, // bottom left
-		 1.0f, -1.0f,  0.0f, // bottom right
-		 1.0f,  1.0f,  0.0f, // top right
-		-1.0f,  1.0f,  0.0f  // top left
-	};
-
-	std::vector<float> uvs {
-		0.0f, 0.0f, // bottom left
-		1.0f, 0.0f, // bottom right
-		1.0f, 1.0f, // top right
-		0.0f, 1.0f  // top left
-	};
-
-	std::vector<unsigned int> indices {
-		0, 1, 2, // bottom right triangle
-		2, 3, 0  // top left triangle
-	};
-
 	// temp texture creation code
 	glm::ivec2 textureSize(640, 640);
 	GLuint texture;
@@ -148,51 +130,23 @@ int main(int argc, char** argv) {
 	glTextureStorage2D(texture, 1, GL_RGBA32F, textureSize.x, textureSize.y);
 	glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
-	// Buffers
-	GLuint vertexArray;
-	GLuint vertexBuffer;
-	GLuint indexBuffer;
-	GLuint uvBuffer;
-	
-	glCreateVertexArrays(1, &vertexArray);
-
-	glCreateBuffers(1, &vertexBuffer);
-	glNamedBufferData(vertexBuffer, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-	glEnableVertexArrayAttrib(vertexArray, 0);
-	glVertexArrayAttribBinding(vertexArray, 0, 0);
-	glVertexArrayAttribFormat(vertexArray, 0, 3, GL_FLOAT, GL_FALSE, 0);
-	glVertexArrayVertexBuffer(vertexArray, 0, vertexBuffer, 0, 3 * sizeof(float));
-
-	glCreateBuffers(1, &uvBuffer);
-	glNamedBufferData(uvBuffer, uvs.size() * sizeof(float), uvs.data(), GL_STATIC_DRAW);
-	glEnableVertexArrayAttrib(vertexArray, 1);
-	glVertexArrayAttribBinding(vertexArray, 1, 1);
-	glVertexArrayAttribFormat(vertexArray, 1, 2, GL_FLOAT, GL_FALSE, 0);
-	glVertexArrayVertexBuffer(vertexArray, 1, uvBuffer, 0, 2 * sizeof(float));
-
-	glCreateBuffers(1, &indexBuffer);
-	glNamedBufferData(indexBuffer, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-	glVertexArrayElementBuffer(vertexArray, indexBuffer);
-
-	glBindVertexArray(vertexArray);
+	ScreenPlane screen = ScreenPlane(1.0f);
+	screen.setShader(&mandelbrotShader);
 
 	while (!glfwWindowShouldClose(window)) {
 		if (changed) {
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			computeShader.bind();
 			computeShader.setdVec2(c_topLeftCorner, windowData.topLeftCorner.x, windowData.topLeftCorner.y);
 			computeShader.setdVec2(c_bottomRightCorner, windowData.bottomRightCorner.x, windowData.bottomRightCorner.y);
 			glBindTextureUnit(0, texture);
 			computeShader.dispatch(glm::ivec3(textureSize / 8, 1));
 			computeShader.await();
 
-			mandelbrotShader.bind();
 			mandelbrotShader.setiVec1(location_textureId, 0);
 			glBindTextureUnit(0, texture);
 
-			// draw triangle
-			glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+			screen.draw();
 
 			glfwSwapBuffers(window);
 			changed = false;
@@ -201,11 +155,7 @@ int main(int argc, char** argv) {
 	}
 
 	// cleanup
-	glDeleteBuffers(1, &vertexBuffer);
-	glDeleteBuffers(1, &uvBuffer);
-	glDeleteBuffers(1, &indexBuffer);
 	glDeleteTextures(1, &texture);
-	glDeleteVertexArrays(1, &vertexArray);
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
