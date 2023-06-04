@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+#include <chrono>
 #include "Shader.hpp"
 #include "ScreenPlane.hpp"
 #include "Texture.hpp"
@@ -133,22 +134,29 @@ int main(int argc, char** argv) {
 	ScreenPlane screen = ScreenPlane(1.0f);
 	screen.setShader(&mandelbrotShader);
 
+	GLuint timerQuery;
+	glGenQueries(1, &timerQuery);
+
 	while (!glfwWindowShouldClose(window)) {
 		if (changed) {
-			glClear(GL_COLOR_BUFFER_BIT);
-
 			unsigned int iterCount = 1000;
 			computeShader.setUint(c_iterations, iterCount);
 			computeShader.setdVec2(c_topLeftCorner, windowData.topLeftCorner.x, windowData.topLeftCorner.y);
 			computeShader.setdVec2(c_bottomRightCorner, windowData.bottomRightCorner.x, windowData.bottomRightCorner.y);
 			computeShader.bindTexture(*windowData.texture, 0);
+			glBeginQuery(GL_TIME_ELAPSED, timerQuery);
 			computeShader.dispatch(glm::ivec3(windowData.texture->getSize() / 8, 1));
 			computeShader.await();
+			glEndQuery(GL_TIME_ELAPSED);
+			GLuint64 elapsedTime;
+			glGetQueryObjectui64v(timerQuery, GL_QUERY_RESULT, &elapsedTime);
+			std::cout << "Render time: " << elapsedTime / 1000000.0 << "ms" << std::endl;
 
 			mandelbrotShader.setInt(location_textureId, 0);
 			mandelbrotShader.bindTexture(*windowData.texture, 0);
 
 			screen.draw();
+
 
 			glfwSwapBuffers(window);
 			changed = false;
