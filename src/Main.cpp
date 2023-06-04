@@ -74,7 +74,6 @@ int main(int argc, char** argv) {
 		GLint major, minor;
 		glGetIntegerv(GL_MAJOR_VERSION, &major);
 		glGetIntegerv(GL_MINOR_VERSION, &minor);
-		std::cout << "OpenGL " << major << "." << minor << std::endl;
 		if (major < 4 || (major == 4 && minor < 5)) {
 			std::cerr << "OpenGL 4.5 or higher is required. You have OpenGL "
 				<< major << "." << minor << " installed." << std::endl;
