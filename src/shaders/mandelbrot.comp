@@ -1,6 +1,6 @@
 #version 450
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
-layout(rgba32f, binding = 0) uniform image2D textureSampler;
+layout(rgba32f, binding = 0) uniform image2D outImage;
 
 layout(location = 0) uniform dvec2 topLeftCorner;
 layout(location = 1) uniform dvec2 bottomRightCorner;
@@ -89,10 +89,10 @@ void main() {
 	dvec3 t = dvec3(0.0, 0.0, 0.0);
 	for(i = 0; abs(t.x + t.y) <= 4.0 && i < iterations; i++) {
 		t = z.xyx * z.xyy;
-		z.xy = (t.yz * yFac) + t.xz + c.xy;
+		z = (t.yz * yFac) + t.xz + c;
 	}
 
 	vec4 pixelColor = i == iterations ? centerColor : getColor(i);
 
-	imageStore(textureSampler, pixelCoords, pixelColor);
+	imageStore(outImage, pixelCoords, pixelColor);
 }
