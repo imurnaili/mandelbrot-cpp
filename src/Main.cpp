@@ -12,6 +12,8 @@
 #include "ScreenPlane.hpp"
 #include "Texture.hpp"
 
+#define RENDER_STEP_COUNT 1 // 5 seems good
+
 static bool changed = true;
 //TODO: 
 // - add zooming by fathering the mouse position to the center of the screen and scaling the render area by the scroll offset (use glfwSetScrollCallback) 
@@ -25,9 +27,11 @@ struct WindowData {
 	glm::dvec2 prevMousePos;
 	glm::dvec2 topLeftCorner;
 	glm::dvec2 bottomRightCorner;
-	Texture* texture;
+	Texture* textures[RENDER_STEP_COUNT];
 
-	~WindowData() { delete texture; }
+	~WindowData() {
+		for (int i = 0; i < RENDER_STEP_COUNT; i++) delete textures[i];
+	}
 };
 
 std::string readFileContents(const std::string& path) {
@@ -63,6 +67,7 @@ int main(int argc, char** argv) {
 	glfwInit();
 	GLFWwindow* window = glfwCreateWindow(640, 640, "Hello World", NULL, NULL);
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1);
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
 #ifndef NDEBUG
@@ -85,7 +90,9 @@ int main(int argc, char** argv) {
 	windowData.prevMousePos = glm::dvec2();
 	windowData.topLeftCorner = glm::dvec2(-2.0f, 2.0f);
 	windowData.bottomRightCorner = glm::dvec2(2.0f, -2.0f);
-	windowData.texture = new Texture(glm::ivec2(windowData.windowSize), Texture::Format::RGBA32F, Texture::Access::WRITE_ONLY);
+	for (int i = 0; i < RENDER_STEP_COUNT; i++) {
+		windowData.textures[i] = new Texture(glm::ivec2(windowData.windowSize / (i+1.0)), Texture::Format::RGBA32F, Texture::Access::WRITE_ONLY);
+	}
 
 	glfwSetWindowUserPointer(window, &windowData);
 	GLint location_textureId = mandelbrotShader.getUniformLocation("textureSampler");
@@ -98,7 +105,9 @@ int main(int argc, char** argv) {
 		data->windowSize.x = width;
 		data->windowSize.y = height;
 		glViewport(0, 0, width, height);
-		data->texture->resize(glm::ivec2(width, height));
+		for (int i = 0; i < RENDER_STEP_COUNT; i++) {
+			data->textures[i]->resize(glm::ivec2(width / (i+1.0), height / (i+1.0)));
+		}
 		double upp = (data->topLeftCorner.y - data->bottomRightCorner.y) / data->windowSize.y;
 		data->bottomRightCorner.x = data->topLeftCorner.x + (data->windowSize.x * upp);
 		changed = true;
@@ -137,19 +146,26 @@ int main(int argc, char** argv) {
 	GLuint timerQuery;
 	glGenQueries(1, &timerQuery);
 
+	int currentTexture;
+	unsigned int iterCount = 1000;
+
 	while (!glfwWindowShouldClose(window)) {
 		if (changed) {
-			unsigned int iterCount = 1000;
+			currentTexture = RENDER_STEP_COUNT - 1;
 			computeShader.setUint(c_iterations, iterCount);
 			computeShader.setdVec2(c_topLeftCorner, windowData.topLeftCorner.x, windowData.topLeftCorner.y);
 			computeShader.setdVec2(c_bottomRightCorner, windowData.bottomRightCorner.x, windowData.bottomRightCorner.y);
-			computeShader.bindTexture(*windowData.texture, 0);
+			mandelbrotShader.setInt(location_textureId, 0);
+		}
+
+		if (currentTexture >= 0) {
+			computeShader.bindTexture(*windowData.textures[currentTexture], 0);
 
 #ifndef NDEBUG
 			glBeginQuery(GL_TIME_ELAPSED, timerQuery);
 #endif
 			
-			computeShader.dispatch(glm::ivec3(windowData.texture->getSize() / 8, 1));
+			computeShader.dispatch(glm::ivec3(windowData.textures[currentTexture]->getSize() / 8, 1));
 			computeShader.await();
 
 #ifndef NDEBUG
@@ -159,13 +175,12 @@ int main(int argc, char** argv) {
 			std::cout << "Render time: " << elapsedTime / 1000000.0 << "ms" << std::endl;
 #endif
 
-			mandelbrotShader.setInt(location_textureId, 0);
-			mandelbrotShader.bindTexture(*windowData.texture, 0);
-
+			mandelbrotShader.bindTexture(*windowData.textures[currentTexture], 0);
 			screen.draw();
 
 			glfwSwapBuffers(window);
 			changed = false;
+			currentTexture--;
 		}
 		glfwPollEvents();
 	}
