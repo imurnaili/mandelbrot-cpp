@@ -40,9 +40,14 @@ void Shader::bindTexture(Texture& texture, uint8_t slot) {
 	texture.bind(slot);
 }
 
-void Shader::setiVec1(GLint location, int x) {
+void Shader::setInt(GLint location, int x) {
 	bind();
 	glUniform1i(location, x);
+}
+
+void Shader::setUint(GLint location, unsigned int x) {
+	bind();
+	glUniform1ui(location, x);
 }
 
 void Shader::setVec2(GLint location, float x, float y) {

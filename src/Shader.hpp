@@ -20,7 +20,8 @@ public:
 
 	void bind();
 	void bindTexture(Texture& texture, uint8_t slot);
-	void setiVec1(GLint location, int x);
+	void setInt(GLint location, int x);
+	void setUint(GLint location, unsigned int x);
 	void setVec2(GLint location, float x, float y);
 	void setdVec2(GLint location, double x, double y);
 

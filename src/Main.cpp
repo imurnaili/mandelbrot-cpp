@@ -90,6 +90,7 @@ int main(int argc, char** argv) {
 	GLint location_textureId = mandelbrotShader.getUniformLocation("textureSampler");
 	GLint c_topLeftCorner = computeShader.getUniformLocation("topLeftCorner");
 	GLint c_bottomRightCorner = computeShader.getUniformLocation("bottomRightCorner");
+	GLint c_iterations = computeShader.getUniformLocation("iterations");
 
 	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
 		WindowData* data = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer(window));
@@ -136,13 +137,15 @@ int main(int argc, char** argv) {
 		if (changed) {
 			glClear(GL_COLOR_BUFFER_BIT);
 
+			unsigned int iterCount = 1000;
+			computeShader.setUint(c_iterations, iterCount);
 			computeShader.setdVec2(c_topLeftCorner, windowData.topLeftCorner.x, windowData.topLeftCorner.y);
 			computeShader.setdVec2(c_bottomRightCorner, windowData.bottomRightCorner.x, windowData.bottomRightCorner.y);
 			computeShader.bindTexture(*windowData.texture, 0);
 			computeShader.dispatch(glm::ivec3(windowData.texture->getSize() / 8, 1));
 			computeShader.await();
 
-			mandelbrotShader.setiVec1(location_textureId, 0);
+			mandelbrotShader.setInt(location_textureId, 0);
 			mandelbrotShader.bindTexture(*windowData.texture, 0);
 
 			screen.draw();

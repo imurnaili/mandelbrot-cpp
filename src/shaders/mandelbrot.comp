@@ -6,7 +6,8 @@ layout(location = 0) uniform dvec2 topLeftCorner;
 layout(location = 1) uniform dvec2 bottomRightCorner;
 
 #define centerColor vec4(0.0f, 0.0f, 0.0f, 1.0f)
-#define iterations 1000
+//#define iterations 1000
+uniform uint iterations;
 
 #define cx_mul(a, b) dvec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)
 #define squareLength(a) abs(a.x*a.x+a.y*a.y)
