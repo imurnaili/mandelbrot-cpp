@@ -144,19 +144,25 @@ int main(int argc, char** argv) {
 			computeShader.setdVec2(c_topLeftCorner, windowData.topLeftCorner.x, windowData.topLeftCorner.y);
 			computeShader.setdVec2(c_bottomRightCorner, windowData.bottomRightCorner.x, windowData.bottomRightCorner.y);
 			computeShader.bindTexture(*windowData.texture, 0);
+
+#ifndef NDEBUG
 			glBeginQuery(GL_TIME_ELAPSED, timerQuery);
+#endif
+			
 			computeShader.dispatch(glm::ivec3(windowData.texture->getSize() / 8, 1));
 			computeShader.await();
+
+#ifndef NDEBUG
 			glEndQuery(GL_TIME_ELAPSED);
 			GLuint64 elapsedTime;
 			glGetQueryObjectui64v(timerQuery, GL_QUERY_RESULT, &elapsedTime);
 			std::cout << "Render time: " << elapsedTime / 1000000.0 << "ms" << std::endl;
+#endif
 
 			mandelbrotShader.setInt(location_textureId, 0);
 			mandelbrotShader.bindTexture(*windowData.texture, 0);
 
 			screen.draw();
-
 
 			glfwSwapBuffers(window);
 			changed = false;
