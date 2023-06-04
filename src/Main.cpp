@@ -15,12 +15,12 @@
 #define RENDER_STEP_COUNT 1 // 5 seems good
 
 static bool changed = true;
-//TODO: 
-// - add zooming by fathering the mouse position to the center of the screen and scaling the render area by the scroll offset (use glfwSetScrollCallback) 
+//TODO:
+// - add zooming by fathering the mouse position to the center of the screen and scaling the render area by the scroll offset (use glfwSetScrollCallback)
 // - add panning by fathering the mouse position to the center of the screen and translating the render area by the mouse position delta (use glfwSetCursorPosCallback)
 // - add color palette (use glfwSetKeyCallback)
 // - add color modes (use glfwSetKeyCallback)
-// - add julia set 
+// - add julia set
 
 struct WindowData {
 	glm::dvec2 windowSize;
@@ -70,11 +70,24 @@ int main(int argc, char** argv) {
 	glfwSwapInterval(1);
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
+	{ // OpenGL version check
+		GLint major, minor;
+		glGetIntegerv(GL_MAJOR_VERSION, &major);
+		glGetIntegerv(GL_MINOR_VERSION, &minor);
+		std::cout << "OpenGL " << major << "." << minor << std::endl;
+		if (major < 4 || (major == 4 && minor < 5)) {
+			std::cerr << "OpenGL 4.5 or higher is required. You have OpenGL "
+				<< major << "." << minor << " installed." << std::endl;
+			return -1;
+		}
+	}
+
 #ifndef NDEBUG
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
 #endif
 	glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	std::string vertexShaderCode = readFileContents("shaders/texture.vert");
 	std::string fragmentShaderCode = readFileContents("shaders/texture.frag");
@@ -146,7 +159,7 @@ int main(int argc, char** argv) {
 	GLuint timerQuery;
 	glGenQueries(1, &timerQuery);
 
-	int currentTexture;
+	int currentTexture = RENDER_STEP_COUNT - 1;
 	unsigned int iterCount = 1000;
 
 	while (!glfwWindowShouldClose(window)) {
@@ -164,7 +177,7 @@ int main(int argc, char** argv) {
 #ifndef NDEBUG
 			glBeginQuery(GL_TIME_ELAPSED, timerQuery);
 #endif
-			
+
 			computeShader.dispatch(glm::ivec3(windowData.textures[currentTexture]->getSize() / 8, 1));
 			computeShader.await();
 
